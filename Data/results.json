@@ -1,0 +1,40 @@
+{
+    "value_from_CAD": {
+        "windows_long_10": 1900.0,
+        "wall_long_10": 3360.0,
+        "wall_long_11": 3360.0,
+        "wall_width_10": 2900.0,
+        "wall_width_11": 2900.0,
+        "windows_width_10": 1800.0,
+        "windows_long_11": 1900.0,
+        "windows_width_11": 1800.0,
+        "windows_diagnol_11": 2617.25,
+        "windows_diagnol_10": 2617.25,
+        "wall_diagnol_11": 4438.42,
+        "wall_diagnol_10": 4438.42
+    },
+    "value_from_PointCloud": {
+        "wall_diagonal_diff": 15.2,
+        "window_diagonal_diff": 11.63,
+        "windows_long_10": 2440.66,
+        "windows_long_11": 2431.85,
+        "windows_width_10": 2295.7,
+        "windows_width_11": 2294.5,
+        "wall_long_10": 3344.07,
+        "wall_long_11": 3337.78,
+        "wall_width_10": 2881.51,
+        "wall_width_11": 2893.12
+    },
+    "diff_dict": {
+        "windows_long_11": 531.85,
+        "windows_long_10": 540.66,
+        "windows_width_11": 494.5,
+        "windows_width_10": 495.7,
+        "wall_long_11": 22.22,
+        "wall_long_10": 15.93,
+        "wall_width_11": 6.88,
+        "wall_width_10": 18.49,
+        "wall_diagonal_diff": 15.2,
+        "window_diagonal_diff": 11.63
+    }
+}

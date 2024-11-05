@@ -1,0 +1,18 @@
+aiohttp
+aiohttp_cors
+loguru
+aiofiles
+peewee
+icecream
+aioconsole
+numpy==1.26.4
+opencv-python
+# PyRVC - from ruben SDK
+pyModbusTCP
+open3d
+scipy
+Pillow
+ezdxf
+matplotlib
+openpyxl
+pandas
