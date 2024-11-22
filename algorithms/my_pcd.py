@@ -17,57 +17,6 @@ from .CCTDecoder.cct_decode import CCT_extract
 CCT_N = 12
 
 
-def draw_registration_result(source, target, transformation):
-    source_temp = copy.deepcopy(source)
-    target_temp = copy.deepcopy(target)
-    source_temp.paint_uniform_color([1, 0.706, 0])
-    target_temp.paint_uniform_color([0, 0.651, 0.929])
-    source_temp.transform(transformation)
-    o3d.visualization.draw_geometries([source_temp, target_temp],
-                                      zoom=0.2459,
-                                      front=[0.9288, -0.2951, -0.2242],
-                                      lookat=[1.6784, 2.0612, 1.4451],
-                                      up=[-0.3402, -0.9189, -0.1996])
-
-def draw_registration_result(source, target, transformation, color=False):
-    source_temp = copy.deepcopy(source)
-    target_temp = copy.deepcopy(target)
-    if not color:
-        source_temp.paint_uniform_color([1, 1, 0])
-        target_temp.paint_uniform_color([0, 1, 1])
-    source_temp.transform(transformation)
-    o3d.visualization.draw_geometries([source_temp, target_temp])
-
-@timeit
-def colored_icp_registration(source, target, voxel_size, current_transformation):
-    print("Colored ICP registration")
-    voxel_radius = [5*voxel_size, 3*voxel_size, voxel_size]
-    max_iter = [60, 35, 20]
-    for scale in range(3):
-        max_it = max_iter[scale]
-        radius = voxel_radius[scale]
-        print("scale_level = {0}, voxel_size = {1}, max_iter = {2}".format(scale, radius, max_it))
-        source_down = source.voxel_down_sample(radius)
-        target_down = target.voxel_down_sample(radius)
-        source_down.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=radius*2, max_nn=20))
-        target_down.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=radius*2, max_nn=20))
-        result = o3d.pipelines.registration.registration_icp(
-            source_down, 
-            target_down, 
-            radius, 
-            current_transformation,
-            o3d.pipelines.registration.TransformationEstimationPointToPlane(),
-            o3d.pipelines.registration.ICPConvergenceCriteria(relative_fitness=1e-6,
-                                                              relative_rmse=1e-6,
-                                                              max_iteration=max_it))
-        current_transformation = result.transformation
-        print(result)
-    current_transformation = np.array(current_transformation)
-    print(current_transformation)
-    # draw_registration_result(source, target, current_transformation, color=False)
-    return current_transformation
-
-
 class MyPCD():
 
     def __init__(self, folder_path):

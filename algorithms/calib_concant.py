@@ -57,6 +57,8 @@ def combine_frames_extrinsic(combine_folder, cam_ext_pkl, traj_ext_pkl):
         # ic (rt_cam_traj)
         pcd_combined += right_pcd.transform(rt_cam_traj)
         pcd_combined += left_pcd.transform( rt_cam_traj @ rt_lr )
+        # pcd_combined += left_pcd.transform(rt_cam_traj)
+        # pcd_combined += right_pcd.transform( rt_cam_traj @ np.linalg.inv(rt_lr) )
 
     pcd_combined = resample_pcd(pcd_combined)
     logger.info(f"pcd_combined has {len(pcd_combined.points)} points")

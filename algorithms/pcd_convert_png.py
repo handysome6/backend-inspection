@@ -6,13 +6,14 @@ import math
 from icecream import ic
 
 
-def convert_pcd_to_2d_image(pcd) -> tuple[np.ndarray, np.ndarray]:
+def convert_pcd_to_2d_image(pcd, background_color=(48, 40, 33)) -> tuple[np.ndarray, np.ndarray]:
     """
     convert open3d point cloud to 2d image
     ---------------------------------------------------------------------------
     parameters:
     ----------
         pcd: open3d point cloud
+        background_color: background color of the image
 
     returns:
     --------
@@ -39,7 +40,7 @@ def convert_pcd_to_2d_image(pcd) -> tuple[np.ndarray, np.ndarray]:
 
     # default background is BGR(48, 40, 33)
     # current background is white(255, 255, 255)
-    img = np.full((img_height, img_width, 3), (48, 40, 33), dtype=np.uint8)
+    img = np.full((img_height, img_width, 3), background_color, dtype=np.uint8)
     # img = np.zeros((img_y_range+300, img_x_range+300, 3))
 
     # 计算缩放因子
@@ -117,7 +118,7 @@ def plot_skeleton_on_image(img, transform_matrix, lines) -> np.ndarray:
         end_pixel = end_transformed[:2].astype(int)
         
         # 检查端点是否在图像范围内
-        if (0 <= start_pixel[0] < img.shape[1] and 0 <= start_pixel[1] < img.shape[0] and
+        if True or (0 <= start_pixel[0] < img.shape[1] and 0 <= start_pixel[1] < img.shape[0] and
             0 <= end_pixel[0] < img.shape[1] and 0 <= end_pixel[1] < img.shape[0]):
             # 在图像上绘制线段
             cv2.line(img, tuple(start_pixel), tuple(end_pixel), (0, 255, 0), 2)
