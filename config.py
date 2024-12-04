@@ -27,5 +27,5 @@ TRAJ_EXT_PKL = r"Data\model_1017\cam_traj_ext.pkl"
 ROOT_FOLDER = r"U:\Inspection_Data"
 
 ############################ PLC Options ############################
-PLC_HOST = '192.168.1.38'
+PLC_HOST = '192.168.111.3'
 PLC_PORT = 502
