@@ -6,9 +6,9 @@ Please change according to the systems' file sturcture.
 
 ############################ Simulation configuration ############################
 # Control whether PLC not to wait for wall in position signal.
-PLC_WAIT_FOR_WALL = False
+PLC_WAIT_FOR_WALL = True
 # Control whether to connect to PLC and camera.
-RUN_SIMULATION = True
+RUN_SIMULATION = False
 SIMULATION_DATA_DIR = r"C:\workspace\0902_zhongjian\wall_0926_4pm"
 USE_FAKE_DATA = False
 
@@ -24,7 +24,7 @@ TRAJ_EXT_PKL = r"Data\model_1017\cam_traj_ext.pkl"
 ############################ Capture Saving Options ############################
 # root folder for saving captured data and database files.
 # ROOT_FOLDER = r"U:\Inspection_Data"
-ROOT_FOLDER = r"U:\Inspection_Data"
+ROOT_FOLDER = r"D:\Inspection_Data"
 
 ############################ PLC Options ############################
 PLC_HOST = '192.168.111.3'

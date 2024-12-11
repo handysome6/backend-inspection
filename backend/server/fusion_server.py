@@ -70,13 +70,18 @@ class FusionServerHandler:
 
             from config import USE_FAKE_DATA
             if not USE_FAKE_DATA:
-                post_process_task = asyncio.create_task(self.project_manager.run_algorithms())
+                self.post_process_task = asyncio.create_task(self.post_process_coroutine())
             else:
                 pass
         except asyncio.CancelledError:
             logger.info("capture process cancelled")
         except Exception as e:
             logger.error(f"Error in run_capture_process: {e}")
+
+    async def post_process_coroutine(self):
+        await self.project_manager.run_algorithms()
+        logger.info("Sending refresh command to client")
+        await self.ws.send_str(json.dumps({'cmd':'refresh'}))
 
     async def websocket_handler(self, request):
         """
@@ -407,7 +412,8 @@ class FusionServerHandler:
             query = request.query
             print(query)
 
-            self.hardware_manager.reset()
+            self.reset_task = asyncio.create_task(self.hardware_manager.reset())
+
             self.project_manager = None
 
             await self.hardware_manager.write_capture_finished()

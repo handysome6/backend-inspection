@@ -73,5 +73,5 @@ class HardwareManager:
 
     async def write_capture_finished(self):
         if PLC_WAIT_FOR_WALL:
-            await self.plc_client.write_capture_finished()
+            self.plc_client.write_capture_finished()
             await asyncio.sleep(1)

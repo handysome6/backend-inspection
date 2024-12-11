@@ -94,58 +94,24 @@ class ProjectManager:
         o3d.io.write_point_cloud(str(self.saving_path / "pcd_combined.ply"), self.pcd)
         return self.pcd
 
-    async def preprocess_pcd(self):
-        if self.pcd is None:
-            logger.error("no pcd, please combine pcd first")
-            return None
-        # self.pcd_surface = get_top_surface(self.pcd)
-
-        loop = asyncio.get_event_loop()
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            pcd_surface = await loop.run_in_executor(executor, get_top_surface, 
-                                                              self.pcd)
-        self.pcd_surface = pcd_surface
-
-        # save pcd_surface
-        o3d.io.write_point_cloud(str(self.saving_path / "pcd_surface.ply"), self.pcd_surface)
-        return self.pcd_surface
-
-    async def fitting_boundary(self, pcd):
-        dxf_path = DxfFile.select().where(DxfFile.id == self.dxf_id).first().storing_path
-        if not Path(dxf_path).exists():
-            logger.error(f"未找到ID为{self.dxf_id}的DXF文件")
-            raise ValueError(f"未找到ID为{self.dxf_id}的DXF文件")
-        
-        excel_template_path = './data/result_a6_vertical.xlsx'
-        save_result_folder = self.saving_path
-
-        loop = asyncio.get_event_loop()
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            await loop.run_in_executor(
-                executor, 
-                run_boundary_fitting, 
-                pcd, dxf_path, excel_template_path, save_result_folder)
-
     async def convert_and_plot_pcd_result(self, pcd):
-        from algorithms.pcd_convert_png import convert_pcd_to_2d_image, plot_skeleton_on_image
+        from algorithms.pcd_convert_png import convert_pcd_to_2d_image
 
         loop = asyncio.get_event_loop()
         with concurrent.futures.ThreadPoolExecutor() as executor:
             img, transform_matrix = await loop.run_in_executor(executor, convert_pcd_to_2d_image, pcd)
 
         self.preview_img = img
-        self.transform_matrix = transform_matrix
-        img = plot_skeleton_on_image(img, transform_matrix, self.edges)
 
         #rotate img by 90 degree anti-clockwise
         img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        cv2.imwrite("rotated.png", img)
+        img = padding_img_to_ratio_3_2(img)
+        cv2.imwrite(str(self.saving_path / "preview.png"), img)
         return img, transform_matrix
 
     async def run_algorithms(self):
         pcd_combined = await self.combine_pcds()
-        pcd_surface = await self.preprocess_pcd()
-        await self.fitting_boundary(pcd_surface)
+        await self.convert_and_plot_pcd_result(pcd_combined)
 
         # run algorithms
         self.postprocess_finished = True
