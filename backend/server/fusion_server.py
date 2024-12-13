@@ -24,12 +24,14 @@ from pathlib import Path
 from icecream import ic
 import cv2
 
-from backend.utils import logger
-from backend.inspect_db import db, DxfFile, WallResult, db_add_dxf_file
+from backend.utils import logger, toast_info
+from backend.inspect_db import db, WallResult, db_add_dxf_file, DXF_DIR
 from backend.hardware_manager import HardwareManager
 from backend.project_manager import ProjectManager
 from config import RUN_SIMULATION, PLC_WAIT_FOR_WALL
 from algorithms.dxf_convert_png import export_dark_bg
+
+PROGRAM_FOLDER = Path(__file__).parent.parent.parent
 
 
 class FusionServerHandler:
@@ -43,7 +45,6 @@ class FusionServerHandler:
         self.hardware_manager = HardwareManager()
         self.project_manager = None
 
-        self.dxf_file_id = None
         self.current_capture_task = None
 
     async def run_capture_process(self):
@@ -51,13 +52,13 @@ class FusionServerHandler:
             # 等待产线就位
             if not RUN_SIMULATION and PLC_WAIT_FOR_WALL:
                 logger.info("waiting for production line in position...")
-                await self.hardware_manager.pcl_wait_for_prod_line()
+                await self.hardware_manager.plc_wait_for_prod_line()
             else:
-                logger.info("skipped waiting for production line")
+                logger.warning("skipped waiting for production line")
 
             steps_list = [1,2,3,4,5,6,7,8]
             # steps_list = [4,5,6,7,8]
-            self.project_manager = ProjectManager(self.dxf_file_id)
+            self.project_manager = ProjectManager(self.dxf_filename)
             self.hardware_manager.set_capture_saving_path(self.project_manager.saving_path)
 
             for step in steps_list:
@@ -80,6 +81,7 @@ class FusionServerHandler:
 
     async def post_process_coroutine(self):
         await self.project_manager.run_algorithms()
+        await self.get_printer_start_handler(None)
         logger.info("Sending refresh command to client")
         await self.ws.send_str(json.dumps({'cmd':'refresh'}))
 
@@ -95,6 +97,9 @@ class FusionServerHandler:
         self.ws = ws
         logger.info('ws connection established')
 
+        # show windows toast
+        toast_info(f"客户端：连接成功")
+
         async for msg in ws:
             if msg.type == aiohttp.WSMsgType.TEXT:
                 if msg.data == 'close':                 # close the websocket connection
@@ -107,8 +112,6 @@ class FusionServerHandler:
                 else:
                     loop = asyncio.get_running_loop()
                     loop.create_task(self.ws_state_control(msg))
-                    # loop.run_until_complete(self.ws_notify_img_step(msg))
-                    # await self.ws_state_control(msg)
             elif msg.type == aiohttp.WSMsgType.ERROR:
                 logger.error(f'ws connection closed with exception {ws.exception()}')
                 self.ws = None
@@ -185,10 +188,12 @@ class FusionServerHandler:
                 return web.json_response({'success': False, 'data': None, 'message': 'Not a dxf file'})
 
             # save the FIELFIELD
-            self.dxf_file_id = await db_add_dxf_file(filename, dxf_file.file.read())
+            await db_add_dxf_file(filename, dxf_file.file.read())
+            self.dxf_filename = str(filename)
             self.current_step = 2
             logger.info(f"current step updated to {self.current_step}")
-            return web.json_response({'success': True, 'data': {'id': self.dxf_file_id}, 'message': '上传成功'})
+            # -1 means this data is not in use
+            return web.json_response({'success': True, 'data': {'id': -1}, 'message': '上传成功'})
         
         except Exception as e:
             e = traceback.format_exc(); logger.error(e)
@@ -207,8 +212,6 @@ class FusionServerHandler:
         """
         try:
             dxfId = request.query['dxfId']
-            # query the dxf file
-            dxf_file = DxfFile.select().where(DxfFile.id == dxfId).first()
             # TODO: call the dxf algorithm to get the concant number
             num = 8
             logger.info(f"returning concant number: {num}")
@@ -339,17 +342,12 @@ class FusionServerHandler:
             logger.info(str(len(request.query)))
             wall_id = request.query['wallID']
             # get the corresponding dxf_id from the database
-            dxf_id = WallResult.select().where(WallResult.id == wall_id).first().dxf_file_id
+            dxf_filename = WallResult.select().where(WallResult.id == wall_id).first().dxf_filename
 
-            # query the dxf file
-            dxf_file: DxfFile = DxfFile.select().where(DxfFile.id == dxf_id).first()
-            if dxf_file is None:
-                logger.error(f"DXF ID {dxf_id} not found")
-                raise Exception(f"DXF ID {dxf_id} not found")
-            
             from config import USE_FAKE_DATA
             if not USE_FAKE_DATA:
-                output_path = export_dark_bg(dxf_file.storing_path)
+                dxf_path = DXF_DIR / dxf_filename
+                output_path = export_dark_bg(dxf_path)
                 return web.FileResponse(output_path)
             else:
                 return web.FileResponse("./Data/cad.png")
@@ -365,10 +363,10 @@ class FusionServerHandler:
             json_response containing the success or failed
         """
         try:
-            path = request.path
             logger.info("printing current result...")
             from backend.test_printer import print_excel
-            print_excel(r"C:\workspace\backend-inspection\Data\fake_res.xlsx")
+            fake_res_path = PROGRAM_FOLDER / "Data" / "fake_res.xlsx"
+            print_excel(fake_res_path)
             # TODO - printer function
             if True:
                 return web.json_response({'success': True, 'data': None, 'message': ''})

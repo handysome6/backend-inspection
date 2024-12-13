@@ -17,7 +17,7 @@ import open3d as o3d
 import cv2
 import numpy as np
 
-from backend.inspect_db import db, DxfFile, WallResult
+from backend.inspect_db import db, WallResult
 from algorithms.calib_concant import combine_frames_extrinsic
 from algorithms.utils import padding_img_to_ratio_3_2
 from algorithms.segment_pc import get_top_surface
@@ -26,8 +26,8 @@ from algorithms.fitting_algorithms import run_boundary_fitting
 from algorithms.pcd_convert_png import plot_skeleton_on_image
 
 class ProjectManager:
-    def __init__(self, dxf_id):
-        self.dxf_id = dxf_id
+    def __init__(self, dxf_filename):
+        self.dxf_filename = dxf_filename
         self.captured_result = {}
         self.pcd = None
         self.postprocess_finished = False
@@ -55,10 +55,8 @@ class ProjectManager:
         # create inspection folder if not exists
         self.saving_path.mkdir(parents=True, exist_ok=True)
 
-        # select dxf entry
-        dxf_file = DxfFile.select().where(DxfFile.id == self.dxf_id)
         # create inspection record
-        WallResult.create(id=self.inspect_id, frame_folder=self.saving_path, dxf_file=dxf_file)
+        WallResult.create(id=self.inspect_id, frame_folder=self.saving_path, dxf_filename=self.dxf_filename)
 
     def add_captured_result(self, frame_id, frames_path):
         """

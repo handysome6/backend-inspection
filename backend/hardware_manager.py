@@ -7,6 +7,7 @@ If RUN_SIMULATION is True, the system will not connect to PLC and RVC cameras.
 import asyncio
 from pathlib import Path
 from loguru import logger
+from backend.utils import toast_info
 from config import RUN_SIMULATION, SIMULATION_DATA_DIR, PLC_WAIT_FOR_WALL
 if not RUN_SIMULATION:
     from .plc_backend.async_plc_client import AsyncPLCClient
@@ -23,7 +24,13 @@ class HardwareManager:
             logger.info("Running in real hardware mode...")
             self.plc_client = AsyncPLCClient()
             self.rvc_client = AsyncRVCXCameras()
-            self.rvc_client.system_init()
+            if self.rvc_client.system_init() == 1:
+                logger.error("RVC cameras init failed!")
+                toast_info("硬件：初始化失败")
+                return 1
+
+        # show windows toast
+        toast_info("硬件：初始化完成")
 
     async def reset(self):
         if RUN_SIMULATION:
@@ -62,7 +69,7 @@ class HardwareManager:
         else:
             await self.plc_client.move_to(pos_idx)
     
-    async def pcl_wait_for_prod_line(self):
+    async def plc_wait_for_prod_line(self):
         await self.plc_client.wait_for_production_line()
 
     def set_capture_saving_path(self, save_path):

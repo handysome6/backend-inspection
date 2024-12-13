@@ -1,11 +1,11 @@
-from backend.inspect_db import db, DxfFile, WallResult
+from backend.inspect_db import db, WallResult
 
 def sample_imageset_create(image_dir):
     # get a dxf file
-    dxf_file = DxfFile.select().first()
+    dxf_filename = 'test0.dxf'
 
     # create a new image set
-    image_set = WallResult.create(id = 0, frame_folder=image_dir, dxf_file=dxf_file)
+    image_set = WallResult.create(id = 0, frame_folder=image_dir, dxf_filename=dxf_filename)
 
     return image_set
 

@@ -98,6 +98,11 @@ class AsyncRVCXCameras():
         self.left_camera = self.init_single_camera(devices, CAM_SN_DICT["left"])
         self.right_camera = self.init_single_camera(devices, CAM_SN_DICT["right"])
 
+        if self.left_camera is None or self.right_camera is None or \
+            self.left_camera == 1 or self.right_camera == 1:
+            logger.error("RVC cameras init failed!")
+            return 1
+
         logger.info("RVC cameras init successfully.")
 
     async def capture_dual(self, idx):

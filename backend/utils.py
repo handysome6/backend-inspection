@@ -15,6 +15,17 @@ logger.add(sys.stderr, format=fmt)
 
 
 ##########################################################################
+# windows toast
+##########################################################################
+from windows_toasts import WindowsToaster, Toast, ToastDuration
+_toaster = WindowsToaster('Inspection')
+_newToast = Toast(duration=ToastDuration.Short)
+def toast_info(msg: str):
+    _newToast.text_fields = [msg]
+    _toaster.show_toast(_newToast)
+
+
+##########################################################################
 # temp file context manager
 ##########################################################################
 import os

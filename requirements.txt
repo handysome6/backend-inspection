@@ -16,3 +16,4 @@ ezdxf
 matplotlib
 openpyxl
 pandas
+windows-toasts
