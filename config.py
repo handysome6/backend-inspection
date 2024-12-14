@@ -15,8 +15,8 @@ USE_FAKE_DATA = False
 
 ############################ Extrinsics configuration ############################
 # extrinsic between left and right camera AND extrinsic between each of two right capture position. 
-CAM_EXT_PKL = r"Data\model_1017\left_right_ext.pkl"
-TRAJ_EXT_PKL = r"Data\model_1017\cam_traj_ext.pkl"
+CAM_EXT_PKL = r"Data\model_1124\left_right_ext.pkl"
+TRAJ_EXT_PKL = r"Data\model_1124\cam_traj_ext.pkl"
 # CAM_EXT_PKL = r"Data\model_1012\left_right_ext.pkl"
 # TRAJ_EXT_PKL = r"Data\model_1012\cam_traj_ext.pkl"
 
