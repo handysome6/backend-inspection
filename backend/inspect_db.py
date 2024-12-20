@@ -24,7 +24,9 @@ class BaseModel(Model):
 class WallResult(BaseModel):
     id = CharField(unique=True)
     frame_folder = CharField()
-    dxf_filename = CharField()
+    dxf_filename = CharField(null=True)
+    wall_index = IntegerField()
+    wall_model = CharField()
     created_date = DateTimeField(default=datetime.datetime.now)
 
 db.connect()
@@ -50,3 +52,7 @@ async def db_add_dxf_file(filename: str, stream: bytes) -> str:
         await f.write(stream)
 
     return dxf_path.name
+
+if __name__ == "__main__":
+    WallResult.create(id=1, frame_folder=str(Path('.').absolute()), dxf_filename=None,
+                        wall_index=1, wall_model="test_test")

@@ -17,3 +17,4 @@ matplotlib
 openpyxl
 pandas
 windows-toasts
+python-snap7

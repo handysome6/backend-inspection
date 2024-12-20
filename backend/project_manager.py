@@ -17,7 +17,7 @@ import open3d as o3d
 import cv2
 import numpy as np
 
-from backend.inspect_db import db, WallResult
+from backend.inspect_db import db, WallResult, DXF_DIR
 from algorithms.calib_concant import combine_frames_extrinsic
 from algorithms.utils import padding_img_to_ratio_3_2
 from algorithms.segment_pc import get_top_surface
@@ -26,12 +26,20 @@ from algorithms.fitting_algorithms import run_boundary_fitting
 from algorithms.pcd_convert_png import plot_skeleton_on_image
 
 class ProjectManager:
-    def __init__(self, dxf_filename):
-        self.dxf_filename = dxf_filename
+    def __init__(self, wall_index, wall_model):
+        self.wall_index = wall_index
+        self.wall_model = wall_model
         self.captured_result = {}
         self.pcd = None
         self.postprocess_finished = False
         self.preview_img = None
+
+        # parse wall_model to get the dxf filename
+        self.dxf_filename = self.wall_model.split("_")[0] + ".dxf"
+        self.dxf_path = DXF_DIR / self.dxf_filename
+        if not self.dxf_path.exists():
+            logger.error(f"DXF file {self.dxf_filename} not found")
+            self.dxf_filename = None
 
         self.inspect_id = self.generate_new_inspection_id()
         # folder location
@@ -56,7 +64,8 @@ class ProjectManager:
         self.saving_path.mkdir(parents=True, exist_ok=True)
 
         # create inspection record
-        WallResult.create(id=self.inspect_id, frame_folder=self.saving_path, dxf_filename=self.dxf_filename)
+        WallResult.create(id=self.inspect_id, frame_folder=self.saving_path, dxf_filename=self.dxf_filename,
+                         wall_index=self.wall_index, wall_model=self.wall_model)
 
     def add_captured_result(self, frame_id, frames_path):
         """

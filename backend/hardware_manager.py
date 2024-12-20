@@ -12,7 +12,7 @@ from config import RUN_SIMULATION, SIMULATION_DATA_DIR, PLC_WAIT_FOR_WALL
 if not RUN_SIMULATION:
     from .plc_backend.async_plc_client import AsyncPLCClient
     from .rvc_cameras.async_rvc import AsyncRVCXCameras
-
+    from .plc_backend.snap7_client import read_wall_index_and_model
 
 class HardwareManager:
     def __init__(self):
@@ -31,6 +31,7 @@ class HardwareManager:
 
         # show windows toast
         toast_info("硬件：初始化完成")
+        logger.success("Hardware initialized successfully")
 
     async def reset(self):
         if RUN_SIMULATION:
@@ -82,3 +83,9 @@ class HardwareManager:
         if PLC_WAIT_FOR_WALL:
             self.plc_client.write_capture_finished()
             await asyncio.sleep(1)
+
+    async def read_wall_index_and_model(self):
+        if RUN_SIMULATION:
+            return 1, "test_test"
+        else:
+            return read_wall_index_and_model()

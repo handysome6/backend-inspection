@@ -46,6 +46,7 @@ class FusionServerHandler:
         self.project_manager = None
 
         self.current_capture_task = None
+        self.post_process_task = None
 
     async def run_capture_process(self):
         try:
@@ -56,9 +57,13 @@ class FusionServerHandler:
             else:
                 logger.warning("skipped waiting for production line")
 
+            # 获取墙体编号和型号
+            wall_index, wall_model = await self.hardware_manager.read_wall_index_and_model()
+            logger.info(f"wall index: {wall_index}, wall model: {wall_model}")
+
             steps_list = [1,2,3,4,5,6,7,8]
             # steps_list = [4,5,6,7,8]
-            self.project_manager = ProjectManager(self.dxf_filename)
+            self.project_manager = ProjectManager(wall_index, wall_model)
             self.hardware_manager.set_capture_saving_path(self.project_manager.saving_path)
 
             for step in steps_list:
@@ -81,7 +86,8 @@ class FusionServerHandler:
 
     async def post_process_coroutine(self):
         await self.project_manager.run_algorithms()
-        await self.get_printer_start_handler(None)
+        # await self.get_printer_start_handler(None)
+        await asyncio.sleep(1)
         logger.info("Sending refresh command to client")
         await self.ws.send_str(json.dumps({'cmd':'refresh'}))
 
@@ -95,10 +101,20 @@ class FusionServerHandler:
         ws = web.WebSocketResponse()
         await ws.prepare(request)
         self.ws = ws
-        logger.info('ws connection established')
+        logger.success('Websocket connection established')
 
         # show windows toast
         toast_info(f"客户端：连接成功")
+        # if previous task is not finished, cancel it
+        if self.current_capture_task is not None:
+            self.current_capture_task.cancel()
+        # if previous post-process task is not finished, cancel it
+        if self.post_process_task is not None:
+            self.post_process_task.cancel()
+
+        # send start command to client when new connection is established
+        logger.info("sending start command to client")
+        await self.ws.send_str("start")
 
         async for msg in ws:
             if msg.type == aiohttp.WSMsgType.TEXT:
@@ -190,8 +206,8 @@ class FusionServerHandler:
             # save the FIELFIELD
             await db_add_dxf_file(filename, dxf_file.file.read())
             self.dxf_filename = str(filename)
-            self.current_step = 2
-            logger.info(f"current step updated to {self.current_step}")
+            # self.current_step = 2
+            # logger.info(f"current step updated to {self.current_step}")
             # -1 means this data is not in use
             return web.json_response({'success': True, 'data': {'id': -1}, 'message': '上传成功'})
         
@@ -211,8 +227,6 @@ class FusionServerHandler:
             }
         """
         try:
-            dxfId = request.query['dxfId']
-            # TODO: call the dxf algorithm to get the concant number
             num = 8
             logger.info(f"returning concant number: {num}")
             return web.json_response({'success': True, 'data': {'num': num}, 'message': ''})
