@@ -1,0 +1,28 @@
+# 科学计算和数据处理
+numpy>=1.21.0
+matplotlib>=3.4.0
+scikit-image>=0.19.0
+scipy>=1.7.0
+
+# 3D数据处理
+open3d>=0.15.0
+trimesh>=3.9.0
+# cloudComPy>=2.12.0  # 注意：这个通常需要单独安装二进制文件
+ezdxf>=0.17.0
+
+# 图像处理
+opencv-python>=4.5.0
+Pillow>=8.2.0
+
+# 调试和日志
+icecream>=2.1.0
+loguru>=0.6.0
+
+# 文件处理
+openpyxl>=3.0.0
+
+# 机器学习
+scikit-learn>=1.0.0  # 用于DBSCAN聚类
+
+# 类型提示支持
+typing-extensions>=4.0.0

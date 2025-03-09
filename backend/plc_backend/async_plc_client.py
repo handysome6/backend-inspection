@@ -35,7 +35,7 @@ class AsyncPLCClient():
     async def reset(self):
         # reset PLC status
         logger.info('resetting')
-        self.client.write_single_register(901, 1)
+        self.client.write_single_register(902, 1)
         await asyncio.sleep(0.3)
         self.ready = True
 

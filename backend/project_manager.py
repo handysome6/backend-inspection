@@ -20,10 +20,9 @@ import numpy as np
 from backend.inspect_db import db, WallResult, DXF_DIR
 from algorithms.calib_concant import combine_frames_extrinsic
 from algorithms.utils import padding_img_to_ratio_3_2
-from algorithms.segment_pc import get_top_surface
 from config import CAM_EXT_PKL, TRAJ_EXT_PKL, ROOT_FOLDER, RUN_SIMULATION, SIMULATION_DATA_DIR
-from algorithms.fitting_algorithms import run_boundary_fitting
 from algorithms.pcd_convert_png import plot_skeleton_on_image
+from algorithms.measure_compare.measurement import all_measurement
 
 class ProjectManager:
     def __init__(self, wall_index, wall_model):
@@ -121,12 +120,18 @@ class ProjectManager:
         await self.convert_and_plot_pcd_result(pcd_combined)
 
         # run algorithms
+        pcd_path = str(self.saving_path / "pcd_combined.ply")
+
+        loop = asyncio.get_event_loop()
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            await loop.run_in_executor(executor, all_measurement, pcd_path, self.dxf_path)
+
         self.postprocess_finished = True
 
     async def get_postprocess_preview_img(self):
         while not self.postprocess_finished:
             await asyncio.sleep(0.1)
 
-        path = str(self.saving_path / "preview.png")
+        path = str(self.saving_path / "img_grey_bg.png")
         return path
 

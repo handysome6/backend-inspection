@@ -28,7 +28,7 @@ from backend.utils import logger, toast_info
 from backend.inspect_db import db, WallResult, db_add_dxf_file, DXF_DIR
 from backend.hardware_manager import HardwareManager
 from backend.project_manager import ProjectManager
-from config import RUN_SIMULATION, PLC_WAIT_FOR_WALL
+from config import RUN_SIMULATION, PLC_WAIT_FOR_WALL, GET_MODEL_FROM_PLC
 from algorithms.dxf_convert_png import export_dark_bg
 
 PROGRAM_FOLDER = Path(__file__).parent.parent.parent
@@ -58,8 +58,13 @@ class FusionServerHandler:
                 logger.warning("skipped waiting for production line")
 
             # 获取墙体编号和型号
-            wall_index, wall_model = await self.hardware_manager.read_wall_index_and_model()
-            logger.info(f"wall index: {wall_index}, wall model: {wall_model}")
+            if GET_MODEL_FROM_PLC:
+                wall_index, wall_model = await self.hardware_manager.read_wall_index_and_model()
+                logger.info(f"wall index: {wall_index}, wall model: {wall_model}")
+            else:
+                wall_index = 1
+                wall_model = "J4_2025-2-19_LINE"
+                logger.info(f"default wall index: {wall_index}, wall model: {wall_model}")
 
             steps_list = [1,2,3,4,5,6,7,8]
             # steps_list = [4,5,6,7,8]
@@ -364,7 +369,9 @@ class FusionServerHandler:
                 output_path = export_dark_bg(dxf_path)
                 return web.FileResponse(output_path)
             else:
-                return web.FileResponse("./Data/cad.png")
+                dxf_path = r"fake\pointcloud_J4_2025-2-19\J4_2025-2-19.dxf"
+                output_path = export_dark_bg(dxf_path)
+                return web.FileResponse(output_path)
         except Exception as e:
             e = traceback.format_exc(); logger.error(e)
             return web.json_response({'success': False, 'data': None, 'message': str(e)})

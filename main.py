@@ -1,6 +1,10 @@
 """
 Main file for the inspection project.
 """
+from envActivation import setup_environment
+setup_environment()
+import cloudComPy as cc
+cc.initCC()
 from backend.async_io import AsyncIO
 from backend.server.fusion_server import FusionServerHandler
 import asyncio
