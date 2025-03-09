@@ -18,8 +18,8 @@ from icecream import ic
 FLIP_LR = 0
 
 CAM_SN_DICT = {
-    "left": "G1GM790B002",
-    "right": "G1GM790B003"
+    "left": "G2GM250B601",
+    "right": "G2GM250B602"
 }
 
 if FLIP_LR:
@@ -46,14 +46,14 @@ class AsyncRVCXCameras():
                 deivce = i
 
         # Create a RVC X Camera and choose use left side camera.
-        x = RVC.X1.Create(deivce, RVC.CameraID_Left)
+        x = RVC.X2.Create(deivce)
 
         # Test RVC X Camera is valid or not.
         if x.IsValid():
             logger.debug("RVC X Camera is valid!")
         else:
             logger.debug("RVC X Camera is not valid!")
-            RVC.X1.Destroy(x)
+            RVC.X2.Destroy(x)
             RVC.SystemShutdown()
             return 1
 
@@ -65,7 +65,7 @@ class AsyncRVCXCameras():
             logger.debug("RVC X Camera is opened!")
         else:
             logger.debug("RVC X Camera is not opened!")
-            RVC.X1.Destroy(x)
+            RVC.X2.Destroy(x)
             RVC.SystemShutdown()
             return 1
         
@@ -139,7 +139,7 @@ class AsyncRVCXCameras():
             depth_path = save_address / "Depth.tif"
 
             # Get image data and image size.
-            img = x.GetImage()
+            img = x.GetImage(RVC.CameraID_Left)
             width, height = img.GetSize().cols, img.GetSize().rows
             # print("width=%d, height=%d" % (width, height))
 
@@ -166,7 +166,7 @@ class AsyncRVCXCameras():
             logger.error("RVC X Camera capture failed!")
             print(RVC.GetLastErrorMessage())
             x.Close()
-            RVC.X1.Destroy(x)
+            RVC.X2.Destroy(x)
             RVC.SystemShutdown()
             return 1
 
@@ -177,8 +177,8 @@ class AsyncRVCXCameras():
         self.right_camera.Close()
 
         # Destroy RVC X Camera.
-        RVC.X1.Destroy(self.left_camera)
-        RVC.X1.Destroy(self.right_camera)
+        RVC.X2.Destroy(self.left_camera)
+        RVC.X2.Destroy(self.right_camera)
 
         # Shutdown RVC X Camera system.
         RVC.SystemShutdown()
